@@ -1,6 +1,6 @@
 package application;
 	
-import org.opencv.core.Core;
+import com.polarcape.opencv.OpenCVDriver;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -45,7 +45,8 @@ public class CameraCalibration extends Application {
 	
 	public static void main(String[] args) {
 		// load the native OpenCV library
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+                OpenCVDriver.load("D:\\dev\\sources\\playground\\Polito-Java-OpenCV-Tutorials-Source-Code");
 		
 		launch(args);
 	}

@@ -1,10 +1,17 @@
 package application;
 
+import com.polarcape.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.CvType;
@@ -25,6 +32,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.opencv.core.MatOfInt;
 
 /**
  * The controller associated to the only view of our application. The
@@ -261,6 +269,7 @@ public class CC_Controller {
 			}
 		}
 		
+                int num = 1;
 		/**
 		 * Find and draws the points needed for the calibration on the chessboard
 		 * 
@@ -282,6 +291,9 @@ public class CC_Controller {
 				Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
 				// the size of the chessboard
 				Size boardSize = new Size(this.numCornersHor, this.numCornersVer);
+                                
+                                saveImage(frame, "_frame_" + num++);
+                                
 				// look for the inner chessboard corners
 				boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, imageCorners,
 						Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE + Calib3d.CALIB_CB_FAST_CHECK);
@@ -320,7 +332,10 @@ public class CC_Controller {
 			// calibrate!
 			Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
 			this.isCalibrated = true;
-			
+                        
+                        saveJSON(intrinsic, "intrinsic");
+                        saveJSON(distCoeffs, "distCoeffs");
+                    
 			// you cannot take other snapshot, at this point...
 			this.snapshotButton.setDisable(true);
 		}
@@ -342,4 +357,21 @@ public class CC_Controller {
 			// buffer
 			return new Image(new ByteArrayInputStream(buffer.toArray()));
 		}
+                
+                private void saveImage(Mat source, String name) {
+                    String cascadeDir = "D:\\dev\\sources\\playground\\Polito-Java-OpenCV-Tutorials-Source-Code\\";
+                    String outputfile = cascadeDir + name + ".png";
+                    Highgui.imwrite(outputfile, source, new MatOfInt(Highgui.IMWRITE_PNG_COMPRESSION, 9));
+                }
+                
+                private void saveJSON(Mat source, String name) {
+                    try {
+                        String cascadeDir = "D:\\dev\\sources\\playground\\Polito-Java-OpenCV-Tutorials-Source-Code";
+                        Path outputfile = Paths.get(cascadeDir, name + ".json");
+                        String intrinsicJSON = JSONUtils.matToJson(intrinsic);
+                        Files.write(outputfile, intrinsicJSON.getBytes());
+                    } catch (IOException ex) {
+                        System.err.println("Could not write: " + ex);
+                    }
+                }
 }
